@@ -406,45 +406,61 @@ CN-Workshop/labs/my_work/cloud-native-spring $ ./mvnw spring-boot:run
 
 Spring Boot provides a http://localhost:8080/metrics[/metrics] endpoint that exposes several automatically collected metrics for your application. It also allows for the creation of custom metrics.
 
-. Browse to the http://localhost:8080/metrics[/metrics] endpoint. Review the metrics exposed:
+. Browse to the http://localhost:8080/metrics[/metrics] endpoint. Navigating to /actuator/metrics displays a list of available meter names. You can drill down to view information about a particular meter by providing its name as a selector, e.g. /actuator/metrics/jvm.memory.max.
 +
 [source,json]
 ----
 {
-  "mem" : 867005,
-  "mem.free" : 337836,
-  "processors" : 8,
-  "instance.uptime" : 212096,
-  "uptime" : 220870,
-  "systemload.average" : 2.97265625,
-  "heap.committed" : 762368,
-  "heap.init" : 262144,
-  "heap.used" : 424531,
-  "heap" : 3728384,
-  "nonheap.committed" : 107584,
-  "nonheap.init" : 2496,
-  "nonheap.used" : 104638,
-  "nonheap" : 0,
-  "threads.peak" : 27,
-  "threads.daemon" : 21,
-  "threads.totalStarted" : 32,
-  "threads" : 23,
-  "classes" : 13753,
-  "classes.loaded" : 13753,
-  "classes.unloaded" : 0,
-  "gc.ps_scavenge.count" : 8,
-  "gc.ps_scavenge.time" : 148,
-  "gc.ps_marksweep.count" : 3,
-  "gc.ps_marksweep.time" : 433,
-  "httpsessions.max" : -1,
-  "httpsessions.active" : 0,
-  "datasource.primary.active" : 0,
-  "datasource.primary.usage" : 0.0,
-  "gauge.response.health" : 2.0,
-  "gauge.response.star-star.favicon.ico" : 1.0,
-  "counter.status.200.star-star.favicon.ico" : 21,
-  "counter.status.200.health" : 12,
-  "counter.status.503.health" : 10
+"names": [
+  "hikaricp.connections",
+  "hikaricp.connections.acquire",
+  "hikaricp.connections.active",
+  "hikaricp.connections.creation",
+  "hikaricp.connections.idle",
+  "hikaricp.connections.max",
+  "hikaricp.connections.min",
+  "hikaricp.connections.pending",
+  "hikaricp.connections.timeout",
+  "hikaricp.connections.usage",
+  "http.server.requests",
+  "jdbc.connections.active",
+  "jdbc.connections.idle",
+  "jdbc.connections.max",
+  "jdbc.connections.min",
+  "jvm.buffer.count",
+  "jvm.buffer.memory.used",
+  "jvm.buffer.total.capacity",
+  "jvm.classes.loaded",
+  "jvm.classes.unloaded",
+  "jvm.gc.live.data.size",
+  "jvm.gc.max.data.size",
+  "jvm.gc.memory.allocated",
+  "jvm.gc.memory.promoted",
+  "jvm.gc.pause",
+  "jvm.memory.committed",
+  "jvm.memory.max",
+  "jvm.memory.used",
+  "jvm.threads.daemon",
+  "jvm.threads.live",
+  "jvm.threads.peak",
+  "jvm.threads.states",
+  "logback.events",
+  "process.cpu.usage",
+  "process.files.max",
+  "process.files.open",
+  "process.start.time",
+  "process.uptime",
+  "spring.data.repository.invocations",
+  "system.cpu.count",
+  "system.cpu.usage",
+  "system.load.average.1m",
+  "tomcat.sessions.active.current",
+  "tomcat.sessions.active.max",
+  "tomcat.sessions.alive.max",
+  "tomcat.sessions.created",
+  "tomcat.sessions.expired",
+  "tomcat.sessions.rejected"
+  ]
 }
 ----
 
@@ -466,14 +482,13 @@ Add the following to your Spring Boot configuration:
 [source,yaml,subs="verbatim,attributes"]
 ----
 management:
-  security:
-    enabled: false
+  cloudfoundry:
+    enabled: true
+    skip-ssl-validation: false
   info:
     git:
       mode: full
-  cloudfoundry:
-    enabled: true
-    skip-ssl-validation: false # set to true if using an insecure CF environment
+      enabled: true
 ----
 
 . In order to add full build information to your artifact that is pushed to Cloud Foundry, and add the following execution and classifier to the `spring-boot-maven-plugin`:
