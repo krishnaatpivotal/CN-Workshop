@@ -313,10 +313,9 @@ Add the following to your Spring Boot configuration:
 [source,yaml]
 ----
 management:
-  endpoints:
-    web:
-      exposure:
-        include: '*'
+  endpoint:
+    health:
+      show-details: always
 ----
 
 . Build and run the _cloud-native-spring_ application:
@@ -337,7 +336,7 @@ management:
       threshold: 200000MB
 ----
 
-. Restart the the _cloud-native-spring_ application. Revisting the http://localhost:8080/actuator/health[/health] endpoint, should result in the application reporting a DOWN status. If
+. Restart the the _cloud-native-spring_ application. Revisting the http://localhost:8080/actuator/health[/health] endpoint, should result in the application reporting a DOWN status.
 
 . Let's create a custom health indicator that will randomize the health check.
 +
