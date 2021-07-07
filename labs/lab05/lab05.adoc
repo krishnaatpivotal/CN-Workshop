@@ -5,16 +5,16 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
-:spring-boot-version: 1.5.9
-:spring-cloud-services-dependencies-version: 1.6.3.RELEASE
-:spring-cloud-dependencies-version: Edgware.RELEASE
+:spring-boot-version: 2.4.8
+:spring-cloud-services-dependencies-version: 2.4.1
+:spring-cloud-dependencies-version: 2020.0.3
 
 = Adding Spring Cloud Service Registration and Discovery
 
 == Overview
 
 [.lead]
-In this lab we'll utilize Spring Boot and Spring Cloud to allow our application to register itself with a service registry.  To do this we'll also need to provision an instance of a Service Registry using Pivotal Cloud Foundry Spring Cloud Services, which is based on https://github.com/Netflix/eureka[Eureka], Netflix’s Service Discovery server and client.  We'll also add a simple client application that looks up our application from the Service Registry and makes requests to our `Cities` service.
+In this lab we'll utilize Spring Boot and Spring Cloud to allow our application to register itself with a service registry.  To do this we'll also need to provision an instance of a Service Registry using Pivotal Cloud Foundry Spring Cloud Services. We'll also add a simple client application that looks up our application from the Service Registry and makes requests to our `Cities` service.
 
 == Update _Cloud-Native-Spring_ Boot Application to Register with Service Registry
 
@@ -36,9 +36,7 @@ In this lab we'll utilize Spring Boot and Spring Cloud to allow our application 
 ----
 @SpringBootApplication
 @RestController
-@EnableJpaRepositories
 @EnableDiscoveryClient // <---- Add this
-@Import(RepositoryRestMvcAutoConfiguration.class)
 public class CloudNativeSpringApplication {
     [...]
 }
@@ -54,17 +52,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-@EnableJpaRepositories
 @EnableDiscoveryClient
-@Import(RepositoryRestMvcConfiguration.class)
 public class CloudNativeSpringApplication {
 
     @Value("${greeting:Hola}")
@@ -116,6 +110,7 @@ applications:
   path: target/cloud-native-spring-0.0.1-SNAPSHOT-exec.jar
   timeout: 180
   env:
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
     JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
   services:
   - config-server
@@ -153,14 +148,14 @@ image::images/registry2.jpg[]
 . Fill out the *Project metadata* fields as follows:
 
 Group:: `io.pivotal`
-Artifact:: cloud-native-spring-ui
+Artifact:: `cloud-native-spring-ui`
 
 . In the dependencies section, add each of the following manually:
 
 - *Vaadin*
 - *Actuator*
 - *Feign*
-- *Service Registry (PCF)*
+- *Service Registry (TAS)* 
 
 . Click the _Generate Project_ button and your browser will download the `cloud-native-spring-ui.zip` file.
 

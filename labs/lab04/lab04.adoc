@@ -5,8 +5,9 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
-:spring-cloud-services-dependencies-version: 1.6.3.RELEASE
-:spring-cloud-dependencies-version: Edgware.RELEASE
+:spring-boot-version: 2.4.8
+:spring-cloud-services-dependencies-version: 2.4.1
+:spring-cloud-dependencies-version: 2020.0.3
 
 = Adding Spring Cloud Config Server
 
@@ -46,7 +47,7 @@ Add the following to Maven `dependencies`:
 <project>
 	<properties>
 		<java.version>11</java.version>
-		<spring-cloud.version>2020.0.3</spring-cloud.version>
+		<spring-cloud.version>{spring-cloud-dependencies-version}</spring-cloud.version>
 	</properties>
   [...]
 	<dependencyManagement>
@@ -54,7 +55,7 @@ Add the following to Maven `dependencies`:
     	<dependency>
 				<groupId>io.pivotal.spring.cloud</groupId>
 				<artifactId>spring-cloud-services-dependencies</artifactId>
-				<version>2.4.1</version>
+				<version>{spring-cloud-services-dependencies-version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>

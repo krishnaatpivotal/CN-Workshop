@@ -5,7 +5,10 @@ ifdef::env-github[]
 :caution-caption: :fire:
 :warning-caption: :warning:
 endif::[]
-:spring-boot-version: 1.5.9
+:spring-boot-version: 2.4.8
+:spring-cloud-services-dependencies-version: 2.4.1
+:spring-cloud-dependencies-version: 2020.0.3
+
 
 = Enhancing with Metrics
 
@@ -131,7 +134,7 @@ Completed Maven configuration:
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>{spring-boot-version}.RELEASE</version>
+    <version>{spring-boot-version}</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
 
