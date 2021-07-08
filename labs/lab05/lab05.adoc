@@ -123,7 +123,7 @@ applications:
 +
 [source,bash]
 ----
-CN-Workshop/labs/my_work/cloud-native-spring $ ./mvnw package
+CN-Workshop/labs/my_work/cloud-native-spring $ ./mvnw install
 ----
 
 . Push application into Cloud Foundry
@@ -154,7 +154,7 @@ Artifact:: `cloud-native-spring-ui`
 
 - *Vaadin*
 - *Actuator*
-- *Spring Reactive Web*
+- *Feign*
 - *Service Registry (TAS)* 
 
 . Click the _Generate Project_ button and your browser will download the `cloud-native-spring-ui.zip` file.
@@ -229,7 +229,6 @@ CN-Workshop/labs/my_work/cloud-native-spring-ui $ mv src/main/resources/applicat
   [...]
 </project>
 ----
-. 
 
 . To get a bit of code reuse, we'll be using the `City` domain object from our main `cloud-native-spring` Spring Boot application. We don't want to pull in any of its transitive dependencies so we explicitly exclude them, however, we do still need `spring-boot-starter-data-rest` to consume the `/cities` service so we add that one in.
 +
@@ -435,7 +434,8 @@ applications:
   memory: 768M
   path: target/cloud-native-spring-ui-0.0.1-SNAPSHOT-exec.jar
   env:
-    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
+      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
+
     JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
   services:
   - service-registry
@@ -448,7 +448,7 @@ applications:
 CN-Workshop/labs/my_work/cloud-native-spring-ui $ cf push
 ----
 
-. Test your application by navigating to the root URL of the application `/appui`, which will invoke Vaadin UI.  You should now see a table listing the first set of rows returned from the cities microservice:
+. Test your application by navigating to the root URL of the application, which will invoke Vaadin UI.  You should now see a table listing the first set of rows returned from the cities microservice:
 +
 image::images/ui.jpg[]
 

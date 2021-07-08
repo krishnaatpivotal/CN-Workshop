@@ -6,12 +6,12 @@ ifdef::env-github[]
 :warning-caption: :warning:
 endif::[]
 
-= Adding Spring Cloud Circuit Breaker and Dashboard
+= Adding Spring Cloud Circuit Breaker
 
 == Overview
 
 [.lead]
-In this lab we'll utilize Spring Boot and Spring Cloud to make our UI Application more resilient.  We'll leverage Spring Cloud Circuit Breaker combined with reslience4j to configure our application behavior when our downstream dependencies are not available.  Finally, we'll use the circuit breaker dashboard to view metrics of the circuit breaker we implemented, which will be auto-provisioned within Pivotal Cloud Foundry Spring Cloud Services.
+In this lab we'll utilize Spring Boot and Spring Cloud to make our UI Application more resilient.  We'll leverage Spring Cloud Circuit Breaker combined with reslience4j to configure our application behavior when our downstream dependencies are not available.
 
 == Define a Circuit Breaker within the _UI Application_
 
@@ -26,17 +26,19 @@ In this lab we'll utilize Spring Boot and Spring Cloud to make our UI Applicatio
 	</dependency>
 ----
 
-. The first thing we need to add to our application is an `@EnableCircuitBreaker` annotation to the Spring Boot application.  Add this annotation to the `CloudNativeSpringUIApplication` class:
+. In AppUI add a class level variable for the CircuitBreakerFactory
 +
-.cloud-native-spring-ui/src/main/java/io/pivotal/cloudnativespringui/CloudNativeSpringUiApplication.java
 [source,java,numbered]
 ----
-@SpringBootApplication
-public class CloudNativeSpringUiApplication {
-    [...]
-}
+private ReactiveCircuitBreakerFactory cbFactory;
 ----
-
++
+Pass the ReactiveCircuitBreakerFactory in the constructor to AppUI.
++
+[source,java,numbered]
+----
+public AppUI(WebClient.Builder wcB, ReactiveCircuitBreakerFactory cbFactory ) 
+----
 . In our webClient call to the downstream service we can add a circuit breaker handler to provide a default response. In this case whenever the circuit breaker is tripped we will return an empty list.  We could alternatively do some error handling such as putting a message on a queue or calling some other service to retrieve the data we need.
 +
 .cloud-native-spring-ui/src/main/java/io/pivotal/cloudnativespringui/CloudNativeSpringUiApplication.java
@@ -46,8 +48,7 @@ public class CloudNativeSpringUiApplication {
       .retrieve()
       .bodyToMono(new ParameterizedTypeReference<PagedModel<City>>() {
       }).transform(
-              it -> cbFactory.create("downstream-service").run(it,throwable -> {
-                  PagedModel<City> emoty = PagedModel.empty();
+              it -> cbFactory.create("city-service").run(it,throwable -> {
                   return Mono.just(PagedModel.empty());
               })
       ).block();
@@ -94,8 +95,7 @@ public class AppUI extends VerticalLayout {
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<PagedModel<City>>() {
                 }).transform(
-                        it -> cbFactory.create("inventory-service").run(it,throwable -> {
-                            PagedModel<City> emoty = PagedModel.empty();
+                        it -> cbFactory.create("city-service").run(it,throwable -> {
                             return Mono.just(PagedModel.empty());
                         })
                 ).block();
@@ -109,30 +109,6 @@ public class AppUI extends VerticalLayout {
     }
 
 }
-----
-
-
-== Create the Circuit Breaker Dashboard
-
-.  When we modified our application to use a Hystrix Circuit Breaker our application automatically begins streaming out metrics about the health of our methods wrapped with a HystrixCommand.  We can stream these events through a AMQP message bus into Turbine to view on a Circuit Breaker dashboard.  This can be done through Cloud Foundry using the services marketplace by executing the following command:
-+
-[source,bash]
-----
-CN-Workshop/labs/my_work/cloud-native-spring-ui $ cf create-service p-circuit-breaker-dashboard standard circuit-breaker-dashboard
-----
-
-. If we view the Circuit Breaker Dashboard (accessible from the *Manage* link in Apps Manager) you will see that a dashboard has been deployed but is empty (You may get an _initializing_ message for a few seconds.  This should eventually refresh to a dashboard):
-+
-image::images/dash.jpg[]
-
-. We will now bind our application to our `circuit-breaker-dashboard` within our Cloud Foundry deployment manifest:
-+
-.cloud-native-spring-ui/manifest.yml
-[source,yml]
-----
-  services:
-  - service-registry
-  - circuit-breaker-dashboard # <---- Add this
 ----
 
 == Deploy and test application
@@ -166,6 +142,4 @@ CN-Workshop/labs/my_work/cloud-native-spring $ cf start cloud-native-spring
 +
 image::../lab05/images/ui.jpg[]
 
-. Refresh your UI application a few times to force some traffic though the circuit breaker call path.  After doing this you should now see the dashboard populated with metrics about the health of your Hystrix circuit breaker:
-+
-image::images/dash1.jpg[]
+. Refresh your UI application a few times to force some traffic though the circuit breaker call path.  
