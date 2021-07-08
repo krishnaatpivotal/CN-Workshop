@@ -293,25 +293,24 @@ Finally, for consistency's sake, we'll produce an exec classified artifact as we
 </project
 ----
 
-. Since this UI is going to consume REST services, its an awesome opportunity to use Feign.  Feign will handle *ALL* the work of invoking our services and marshalling/unmarshalling JSON into domain objects.  We'll add a Feign Client interface into our app.  Take note of how Feign references the downstream service; its only the name of the service it will lookup from Service Registry.
+. Since this UI is going to consume REST services, its an awesome opportunity to use the Spring WebClient.  WebClient will handle *ALL* the work of invoking our services and marshalling/unmarshalling JSON into domain objects.  We'll add a WebClient into our app and configure it to consume the HAL formated objects that our service produces.  
 +
 Add the following interface declaration to the `CloudNativeSpringUiApplication` class:
 +
 [source,java,numbered]
 ----
-    @FeignClient("cloud-native-spring")
-    public interface CityClient {
-        @GetMapping(value = "/cities", consumes = "application/hal+json")
-        Resources<City> getCities();
-    }
+ 	@Bean
+	@LoadBalanced
+	WebClient.Builder hypermediaWebClient(HypermediaWebClientConfigurer configurer) {
+		return configurer.registerHypermediaTypes(WebClient.builder());
+	}
 ----
 +
-We'll also need to add a few annotations to our boot application:
+We'll also need enable Discovery services in our boot application:
 +
 [source,java,numbered]
 ----
 @SpringBootApplication
-@EnableFeignClients  // <---- Add this
 @EnableDiscoveryClient  // <---- And this
 public class CloudNativeSpringUiApplication {
 ----
@@ -325,15 +324,12 @@ package io.pivotal.cloudnativespringui;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.cloud.netflix.feign.EnableFeignClients;
-import org.springframework.cloud.netflix.feign.FeignClient;
 import org.springframework.hateoas.Resources;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import io.pivotal.cloudnativespring.domain.City;
 
 @SpringBootApplication
-@EnableFeignClients
 @EnableDiscoveryClient
 public class CloudNativeSpringUiApplication {
 
@@ -341,63 +337,63 @@ public class CloudNativeSpringUiApplication {
         SpringApplication.run(CloudNativeSpringUiApplication.class, args);
     }
 
-    @FeignClient("cloud-native-spring")
-    public interface CityClient {
-
-        @GetMapping(value = "/cities", consumes = "application/hal+json")
-        Resources<City> getCities();
+    @Bean
+    @LoadBalanced
+    WebClient.Builder hypermediaWebClient(HypermediaWebClientConfigurer configurer) {
+      return configurer.registerHypermediaTypes(WebClient.builder());
     }
 }
 ----
 
-. Next we'll create a Vaadin UI for rendering our data.  The point of this workshop isn't to go into detail on creating UIs; for now suffice to say that Vaadin is a great tool for quickly creating User Interfaces.  Our UI will consume our Feign client we just created.  Create the `io.pivotal.cloudnativespringui.AppUI` class and paste the following code:
+. Next we'll create a Vaadin UI for rendering our data.  The point of this workshop isn't to go into detail on creating UIs; for now suffice to say that Vaadin is a great tool for quickly creating User Interfaces.  Our UI will utilize the WebClient we just created.  Create the `io.pivotal.cloudnativespringui.AppUI` class and paste the following code:
 +
 .cloud-native-spring-ui/src/main/java/io/pivotal/cloudnativespringui/AppUI.java
 [source,java,numbered]
 ----
 package io.pivotal.cloudnativespringui;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import com.vaadin.flow.component.Text;
+import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.router.Route;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.*;
 
-import com.vaadin.annotations.Theme;
-import com.vaadin.server.VaadinRequest;
-import com.vaadin.spring.annotation.SpringUI;
-import com.vaadin.ui.Grid;
-import com.vaadin.ui.UI;
+import static org.springframework.data.rest.webmvc.RestMediaTypes.HAL_JSON;
 
-import io.pivotal.cloudnativespring.domain.City;
-import io.pivotal.cloudnativespringui.CloudNativeSpringUiApplication.CityClient;
-
-@SpringUI
-@Theme("valo")
-public class AppUI extends UI {
-
-    private final CityClient cityClient;
+@Route
+public class AppUI extends VerticalLayout {
 
     private final Grid<City> grid;
 
-    @Autowired
-    public AppUI(CityClient client) {
-        this.cityClient = client;
-        grid = new Grid<>(City.class);
-    }
+    private static final String URL = "http://cloud-native-spring/cities?page=1&size=400";
 
-    @Override
-    protected void init(VaadinRequest request) {
-        setContent(grid);
-        grid.setWidth(100, Unit.PERCENTAGE);
-        grid.setHeight(100, Unit.PERCENTAGE);
+    public AppUI(WebClient.Builder wcB) {
+        Map<String, Integer> params = new HashMap<>();
+        params.put("page", 1);
+        params.put("size", 100);
+
+        PagedModel<City> block = wcB.build().get().uri(URL).accept(HAL_JSON) //
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<PagedModel<City>>() {
+                }).block();
+
+        add(new Text("Cities By Spring."));
+        grid = new Grid<>(City.class);
         Collection<City> collection = new ArrayList<>();
-        cityClient.getCities().forEach(collection::add);
+        block.forEach(collection::add);
         grid.setItems(collection);
+        add(grid);
     }
 }
 ----
++
+Take note of how URL references the downstream service; its only the name of the service it will lookup from Service Registry.
 
-. We'll also want to give our UI App a name so that it can register properly with the Service Registry and potentially use cloud config in the future. The `spring-cloud-services-starter-service-registry` dependency pulls in `spring-security`, so we'll also need to disable security for our sample ui.
+. We'll also want to give our UI App a name so that it can register properly with the Service Registry and potentially use cloud config in the future. 
 +
 Add the following to your Spring Boot configuration:
 +
@@ -408,9 +404,6 @@ spring:
   application:
     name: cloud-native-spring-ui
 
-security:
-  basic:
-    enabled: false
 ----
 
 == Deploy and test application
@@ -419,9 +412,10 @@ security:
 +
 [source,bash]
 ----
-CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package
+CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package -Pproduction
 ----
-
++ 
+The production maven profile tiles Vaadin to package all the required node dependencies without the final jar.
 . Create a Cloud Foundry application manifest:
 +
 [source,bash]
@@ -440,6 +434,7 @@ applications:
   memory: 768M
   path: target/cloud-native-spring-ui-0.0.1-SNAPSHOT-exec.jar
   env:
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
     JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
   services:
   - service-registry
@@ -452,7 +447,7 @@ applications:
 CN-Workshop/labs/my_work/cloud-native-spring-ui $ cf push
 ----
 
-. Test your application by navigating to the root URL of the application, which will invoke Vaadin UI.  You should now see a table listing the first set of rows returned from the cities microservice:
+. Test your application by navigating to the root URL of the application `/appui`, which will invoke Vaadin UI.  You should now see a table listing the first set of rows returned from the cities microservice:
 +
 image::images/ui.jpg[]
 
