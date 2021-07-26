@@ -117,7 +117,7 @@ public class AppUI extends VerticalLayout {
 +
 [source,bash]
 ----
-CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package
+CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package -Pproduction
 ----
 
 . Push application to Cloud Foundry
