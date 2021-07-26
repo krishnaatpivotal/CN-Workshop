@@ -416,7 +416,7 @@ spring:
 CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package -Pproduction
 ----
 + 
-The production maven profile tells Vaadin to package all the required node dependencies without the final jar.
+The production maven profile tells Vaadin to package all the required node dependencies within the final jar.
 . Create a Cloud Foundry application manifest:
 +
 [source,bash]
@@ -435,8 +435,7 @@ applications:
   memory: 768M
   path: target/cloud-native-spring-ui-0.0.1-SNAPSHOT-exec.jar
   env:
-      JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
-
+    JBP_CONFIG_OPEN_JDK_JRE: '{ jre: { version: 11.+ }, memory_calculator: { stack_threads: 25}}'
     JAVA_OPTS: -Djava.security.egd=file:///dev/urandom
   services:
   - service-registry
