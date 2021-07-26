@@ -81,7 +81,7 @@ public class CloudNativeSpringApplication {
 +
 [source,bash]
 ----
-CN-Workshop/labs/my_work/cloud-native-spring $ cf create-service p-service-registry standard service-registry
+cf create-service p-service-registry standard service-registry
 ----
 
 . After you create the service registry instance navigate to your Cloud Foundry _space_ in the Apps Manager UI and refresh the page.  You should now see the newly create `service-registry` instance.  Select the manage link to view the registry dashboard.  Note that there are not any registered applications at the moment:
@@ -133,7 +133,7 @@ CN-Workshop/labs/my_work/cloud-native-spring $ ./mvnw install
 CN-Workshop/labs/my_work/cloud-native-spring $ cf push
 ----
 
-. If we now test our application URLs we will no change.  However, if we view the Service Registry dashboard (accessible from the *Manage* link in Apps Manager) you will see that a service named `CLOUD-NATIVE-SPRING` has registered:
+. If we now test our application URLs we will see no change.  However, if we view the Service Registry dashboard (accessible from the *Manage* link in Apps Manager) you will see that a service named `CLOUD-NATIVE-SPRING` has registered:
 +
 image::images/registry2.jpg[]
 
@@ -154,8 +154,9 @@ Artifact:: `cloud-native-spring-ui`
 
 - *Vaadin*
 - *Actuator*
-- *Feign*
 - *Service Registry (TAS)* 
+- *Spring Reactive Web*
+- *Spring HATEOAS*
 
 . Click the _Generate Project_ button and your browser will download the `cloud-native-spring-ui.zip` file.
 
@@ -190,7 +191,7 @@ CN-Workshop/labs/my_work/cloud-native-spring-ui $ mv src/main/resources/applicat
 
 . Import the project’s pom.xml into your editor/IDE of choice.
 
-. Because we politely asked https://start.spring.io[Spring Initializr] to include *Service Registry (PCF)*, our Maven project has already been configured with the appropriate Spring Cloud Services dependencies:
+. Because we politely asked https://start.spring.io[Spring Initializr] to include *Service Registry (TAS)*, our Maven project has already been configured with the appropriate Spring Cloud Services dependencies:
 +
 .cloud-native-spring-ui/pom.xml
 [source,xml,subs="verbatim,attributes"]
@@ -415,7 +416,7 @@ spring:
 CN-Workshop/labs/my_work/cloud-native-spring-ui $ ./mvnw package -Pproduction
 ----
 + 
-The production maven profile tiles Vaadin to package all the required node dependencies without the final jar.
+The production maven profile tells Vaadin to package all the required node dependencies without the final jar.
 . Create a Cloud Foundry application manifest:
 +
 [source,bash]

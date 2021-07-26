@@ -48,6 +48,7 @@ Add the following to Maven `dependencies`:
 	<properties>
 		<java.version>11</java.version>
 		<spring-cloud.version>{spring-cloud-dependencies-version}</spring-cloud.version>
+    <spring-cloud-services-version>{spring-cloud-services-dependencies-version}</spring-cloud-services-version>
 	</properties>
   [...]
 	<dependencyManagement>
@@ -55,7 +56,7 @@ Add the following to Maven `dependencies`:
     	<dependency>
 				<groupId>io.pivotal.spring.cloud</groupId>
 				<artifactId>spring-cloud-services-dependencies</artifactId>
-				<version>{spring-cloud-services-dependencies-version}</version>
+				<version>${spring-cloud-services-version}</version>
 				<type>pom</type>
 				<scope>import</scope>
 			</dependency>
@@ -75,8 +76,13 @@ Add the following to Maven `dependencies`:
 . Add an `@Value` annotation, private field, and associated usage to the `CloudNativeSpringApplication` class.
 +
 .cloud-native-spring/src/main/java/io/pivotal/CloudNativeSpringApplication.java
++
 [source,java,numbered]
 ----
+import org.springframework.beans.factory.annotation.Value;
+
+public class CloudNativeSpringApplication {
+    ...
     @Value("${greeting:Hola}")
     private String greeting;
 
@@ -206,13 +212,20 @@ Select the *Manage* link towards the top of the resulting screen.  This view sho
 +
 image::images/config-scs2.jpg[]
 
+. If you prefer the CLI you can create the service instance as follows.
++
+[source.bash]
+----
+cf create-service p.config-server standard config-serve
+----
++
 . We now need to update the service instance with our GIT repository information where our configuration files are stored. For this example, we are using the `config` branch of our workshop repository.
 +
 Using the Cloud Foundry CLI execute the following update service command:
 +
 [source,bash]
 ----
-CN-Workshop/labs/my_work/cloud-native-spring $ cf update-service config-server -c '{"git": { "uri": "https://github.com/Pivotal-Field-Engineering/CN-Workshop", "label": "config" } }'
+cf update-service config-server -c '{"git": { "uri": "https://github.com/Pivotal-Field-Engineering/CN-Workshop", "label": "config" } }'
 ----
 
 . Refresh you Config Server management page and you will see the following message.  Wait until the screen refreshes and the service is reintialized:

@@ -22,5 +22,3 @@ management:
     tags:
       application: frontend
       instance: frontend-${CF_INSTANCE_INDEX:0}
-wavefront.application.name: demo
-wavefront.application.service: front-end-app

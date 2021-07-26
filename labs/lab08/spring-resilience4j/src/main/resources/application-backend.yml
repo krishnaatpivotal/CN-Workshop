@@ -6,5 +6,3 @@ management:
     tags:
       application: backend
       instance: backend-${CF_INSTANCE_INDEX:0}
-wavefront.application.name: demo
-wavefront.application.service: back-end-app
