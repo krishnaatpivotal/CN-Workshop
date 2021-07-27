@@ -17,6 +17,12 @@ In order to demonstrate this functionality we will be using the application prov
 
 This application has two components:  A frontend,  and a backend.  The front end application calls the back end application and reports back its execution time.
 
+The demo application is located within the lab08 subdirectory.
+[source.bash]
+----
+cd labs/lab08/spring-resillience4j
+----
+
 == Start the Demo Application
 
 . Open two terminal windows and run the application using the following command.
